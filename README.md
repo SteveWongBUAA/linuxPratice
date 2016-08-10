@@ -1,2 +1,2 @@
 # linuxPratice
-used to pratice linux c++
+This repository is used to pratice linux c++ programming and algorithm.
