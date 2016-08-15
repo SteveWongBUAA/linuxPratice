@@ -17,6 +17,7 @@ int main(int argc, char *argv[])
 	int i;
 	int fd_src, fd_des;
 	char buff[128];
+	count = 0;
 	if (argc!=3)
 	{
 		printf("check the format: comn src_file des_file\n");
@@ -28,6 +29,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 	file_size = lseek(fd_src, 0, SEEK_END);
+	lseek(fd_src, 0, SEEK_SET);
 	if ((fd_des=open(argv[2], O_RDWR|O_CREAT, 0644)) == -1)
 	{
 		perror("open fd_des");
@@ -70,8 +72,8 @@ int main(int argc, char *argv[])
 			sleep(1);
 		}
 		while(i!=0);
-		waitpid(pid, NULL, 0);//等待子进程退出
-		exit(EXIT_SUCCESS);
+		//waitpid(pid, NULL, 0);//等待子进程退出
+		//exit(EXIT_SUCCESS);
 		
 	}
 	else//父进程,负责定时读子进程的进度
@@ -89,15 +91,12 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void sig_alarm(int arg)
-{
-	kill(getppid(), SIGUSR1);//怎么给子进程发信号？
-}
 
 void sig_usr(int sig)
 {
-	float i;
-	i = (float)count/(float)file_size;
-	printf("currnet write  : 0.0f%%\n", i*100);
+	float per;
+	printf("count = %d, file_size = %d\n");
+	per = (float)count/(float)file_size;
+	printf("currnet write  : 0.0f%%\n", per*100);
 }
 
