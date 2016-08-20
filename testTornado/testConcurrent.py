@@ -1,38 +1,65 @@
-# reference: https://mike.depalatis.net/running-possibly-blocking-code-like-a-tornado-coroutine.html
-import random
+#!/usr/bin/python
+#encoding:utf-8
+
+## Copyright (C), 2015-2017, ****.
+## project name:    pxg
+## Author:          hjx
+## Version:         0.2
+## Date:            2015-07-24
+## Description:     
+## History:         0.2
+##   1. Date:
+##      Author:    hjx
+##      Modification:
+##   2. ...
+
+# reference: https://lbolla.info/blog/2013/01/22/blocking-tornado
+
+import tornado.ioloop
+import tornado.web
 import time
-from tornado import gen
-from tornado.concurrent import run_on_executor, futures
-from tornado.ioloop import IOLoop
 
-class TaskRunner(object):
-    def __init__(self, loop=None):
-        self.executor = futures.ThreadPoolExecutor(4)
-        self.loop = loop or IOLoop.instance()
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial, wraps
 
-    @run_on_executor
-    def long_running_task(self):
-        tau = 1
-        time.sleep(tau)
-        return tau
-    
+EXECUTOR = ThreadPoolExecutor(max_workers=4)
 
-loop = IOLoop()
-tasks = TaskRunner(loop)
+def unblock(f):
+    @tornado.web.asynchronous
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        self = args[0]
+        def callback(future):
+            self.write(future.result())
+            self.finish()
 
-@gen.coroutine
-def do_stuff():
-    res = yield tasks.long_running_task()
-    raise gen.Return(res)
+        EXECUTOR.submit(
+                    partial(f, *args, **kwargs)
+                ).add_done_callback(
+                            lambda future: tornado.ioloop.IOLoop().instance().add_callback(
+                                    partial(callback, future)
+                                )
+                        )
+    return wrapper
 
-def do_other_stuff():
-    print random.random()
 
-@gen.coroutine
-def main():
-    for i in range(10):
-        stuff = yield do_stuff()
-        print stuff
-        do_other_stuff()
 
-loop.run_sync(main)
+################################################
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write("hello world %s" % time.time())
+
+class SleepHandler(tornado.web.RequestHandler):
+    @unblock
+    def get(self, n):
+        time.sleep(float(n))
+        return ("Awake! %s" % time.time())
+################################################
+
+if __name__ == "__main__":
+    application = tornado.web.Application([
+        (r"/", MainHandler),
+        (r"/sleep/(\d+)", SleepHandler),
+        ])
+    application.listen(8888)
+    tornado.ioloop.IOLoop.instance().start()
