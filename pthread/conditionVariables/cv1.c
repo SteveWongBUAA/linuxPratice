@@ -18,7 +18,7 @@ int main()
 	
 	pthread_create(&thread1, NULL, waitforpre, NULL);
 
-	sleep(2);
+	//sleep(2);
 
 	
 	pthread_create(&thread2, NULL, pre, NULL);
