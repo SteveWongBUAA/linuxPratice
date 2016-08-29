@@ -1,4 +1,0 @@
-coordin.o: file2.cpp file1.cpp
-	g++ file1.cpp file2.cpp -o coordin.o
-clean:
-	-rm *.o
