@@ -1,3 +1,4 @@
+// can not finish this program, hang up
 #include <iostream>
 #include <string>
 using namespace std;
@@ -16,19 +17,20 @@ public:
 	bool right[8];// on the right side of the river
 	bool mid[8];// on the boat
 	string map[8];// the mapping array
-	void solveone()
+	void solveone(int pre1, int pre2)
 	{
+		cout << endl << "one round!" << endl << endl;
 		if (finish())
 		{
-			cout << "finally finish" << endl;
+			cout << "\n#### finally finish ####" << endl << endl;
 			return;
 		}
 		for (int i = 0; i < 3; i++)// police or dad or mom get on the boat
 		{
 			if (left[i] == 0)// not here, choose next one
 				continue;
-			left[i] = 0;
-			mid[i] = 1;
+			//left[i] = 0;
+			//mid[i] = 1;
 			if (true)// at least 2 people get on the boat, otherwise meaningless
 			{
 				//cout << m[i] << " go to boat" << endl;
@@ -36,8 +38,10 @@ public:
 				{
 					if (left[j] == 0)// not here, choose next one
 						continue;
-					left[j] = 0;
-					mid[j] = 1;
+					if ((pre1 == i && pre2 == j) || (pre1 == j && pre2 == i)) // we should avoid that the same person go to right and loop forever.
+						continue;
+					left[i] = left[j] = 0;
+					mid[i] = mid[j] = 1;
 					if (allok())
 					{
 						cout << map[i] << ", " << map[j] << " go to boat and drive to right" << endl;
@@ -46,18 +50,21 @@ public:
 						right[i] = right[j] = 1;
 						if (allok())
 						{
+							cout << map[i] << ", " << map[j] << " get off and be on the right" << endl;
 							for (int m = 0; m < 3; m++)// police or dad or mon get on the boat						
 							{
-								if (right[i] == 0)
+								if (right[m] == 0)
 									continue;
-								right[m] = 0;
-								mid[m] = 1;
-								for (int n = 0; n < 8; n++)
+								//right[m] = 0;
+								//mid[m] = 1;
+								for (int n = 0; n < 8; n++)// choose n to go to left
 								{
-									if (right[n] == 0 && n != m)// m and n can be the same person, go to left alone
+									if (right[n] == 0 && m != n)// m and n can be the same person, go to left alone. 
 										continue;
-									right[n] = 0;
-									mid[n] = 1;
+									if ((m == i && n == j) || (m == j && n == i))// but we should avoid that two same person go to right and go to left and loop forerver
+										continue;
+									right[m] = right[n] = 0;
+									mid[m] = mid[n] = 1;
 									if (allok())
 									{
 										cout << map[m] << ", " << map[n] << " go to boat and drive to left" << endl;
@@ -65,18 +72,28 @@ public:
 										mid[m] = mid[n] = 0;
 										if (allok())
 										{
-											solve();
+											cout <<  map[m] << ", " << map[n] << " get off be on the left" << endl;
+											solveone(m, n);
 										}
 										// backtrace
-										cout << "backtrace " << map[m] << ", " << map[n] << " go to boat and drive to left" << endl;
+										cout << "# backtrace! should not " << map[m] << ", " << map[n] << " get off be on the left" << endl;
 										left[m] = left[n] = 0;
 										mid[m] = mid[n] = 1;
 									}
+									// backtrace
+									cout << "# backtrace! should not " << map[m] <<  ", " << map[n] << " go to boat and drive to left" << endl;
+									right[m] = right[n] = 1;
+									mid[m] = mid[n] = 0;
 								}
+								// backtrace
+								//cout << "# backtrace! should not " << map[m] << " go to boat and drive to left" << endl;
+								//right[m] = 1;
+								//mid[m] = 0;
 							}
 						}
 
 						// backtrace
+						cout << "# backtrace! should not " << map[i] << ", " << map[j] << " get off and be on the right" << endl;
 						mid[i] = mid[j] = 1;
 						right[i] = right[j] = 0;
 
@@ -84,28 +101,30 @@ public:
 					}
 					
 					// backtrace	
-					left[j] = 1;
-					mid[j] = 0;
+					cout << "# backtrace! should not " << map[i] << ", " << map[j]  << " go to boat and drive to right" << endl;
+					left[i] = left[j] = 1;
+					mid[i] = mid[j] = 0;
 					
 				}
 
 			}
 			// backtrace
-			left[i] = 1;
-			mid[i] = 0;
+			//cout << "# backtrace! should not " << map[i]  << " go to boat and drive to right" << endl;
+			//left[i] = 1;
+			//mid[i] = 0;
 		}
 	}
 	
 	Solution()// initialize: all people on the left 
 	{
-		m[0] = "police";
-		m[1] = "dad";
-		m[2] = "mom";
-		m[3] = "dauA";
-		m[4] = "dauB";
-		m[5] = "sonA";
-		m[6] = "sonB";
-		m[7] = "climinal";
+		map[0] = "police";
+		map[1] = "dad";
+		map[2] = "mom";
+		map[3] = "dauA";
+		map[4] = "dauB";
+		map[5] = "sonA";
+		map[6] = "sonB";
+		map[7] = "criminal";
 
 		for (int i = 0; i < 8; i++)
 		{
@@ -159,6 +178,6 @@ int main()
 {
 	Solution sol;
 	cout << sol.allok() << endl;
-	sol.solveone();
+	sol.solveone(-1, -1);
 	return 0;
 }
