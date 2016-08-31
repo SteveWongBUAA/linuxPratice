@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 using namespace std;
 
 // an array to record the status of people
@@ -13,17 +14,104 @@ class Solution
 public:
 	bool left[8];// on the left side of the river
 	bool right[8];// on the right side of the river
-	bool mid[8];//on the boat
-	bool boat;//boat==false means the boat is on the left side.
-			//	boat==true means the boat is on the right side.
-	Solution()// initialize: all people on the left and boat is on the left
+	bool mid[8];// on the boat
+	string map[8];// the mapping array
+	void solveone()
 	{
+		if (finish())
+		{
+			cout << "finally finish" << endl;
+			return;
+		}
+		for (int i = 0; i < 3; i++)// police or dad or mom get on the boat
+		{
+			if (left[i] == 0)// not here, choose next one
+				continue;
+			left[i] = 0;
+			mid[i] = 1;
+			if (true)// at least 2 people get on the boat, otherwise meaningless
+			{
+				//cout << m[i] << " go to boat" << endl;
+				for (int j = 0; j < 8; j++)
+				{
+					if (left[j] == 0)// not here, choose next one
+						continue;
+					left[j] = 0;
+					mid[j] = 1;
+					if (allok())
+					{
+						cout << map[i] << ", " << map[j] << " go to boat and drive to right" << endl;
+						// get off the boat
+						mid[i] = mid[j] = 0;
+						right[i] = right[j] = 1;
+						if (allok())
+						{
+							for (int m = 0; m < 3; m++)// police or dad or mon get on the boat						
+							{
+								if (right[i] == 0)
+									continue;
+								right[m] = 0;
+								mid[m] = 1;
+								for (int n = 0; n < 8; n++)
+								{
+									if (right[n] == 0 && n != m)// m and n can be the same person, go to left alone
+										continue;
+									right[n] = 0;
+									mid[n] = 1;
+									if (allok())
+									{
+										cout << map[m] << ", " << map[n] << " go to boat and drive to left" << endl;
+										left[m] = left[n] = 1;
+										mid[m] = mid[n] = 0;
+										if (allok())
+										{
+											solve();
+										}
+										// backtrace
+										cout << "backtrace " << map[m] << ", " << map[n] << " go to boat and drive to left" << endl;
+										left[m] = left[n] = 0;
+										mid[m] = mid[n] = 1;
+									}
+								}
+							}
+						}
+
+						// backtrace
+						mid[i] = mid[j] = 1;
+						right[i] = right[j] = 0;
+
+
+					}
+					
+					// backtrace	
+					left[j] = 1;
+					mid[j] = 0;
+					
+				}
+
+			}
+			// backtrace
+			left[i] = 1;
+			mid[i] = 0;
+		}
+	}
+	
+	Solution()// initialize: all people on the left 
+	{
+		m[0] = "police";
+		m[1] = "dad";
+		m[2] = "mom";
+		m[3] = "dauA";
+		m[4] = "dauB";
+		m[5] = "sonA";
+		m[6] = "sonB";
+		m[7] = "climinal";
+
 		for (int i = 0; i < 8; i++)
 		{
 			left[i] = 1;
 			mid[i] = 0;
 			right[i] = 0;
-			boat = false;
 		}
 	}
 	bool ok(bool arr[])
@@ -63,82 +151,7 @@ public:
 	}
 
 
-	void solveone()
-	{
-		if (finish())
-		{
-			cout << "finally finish" << endl;
-			return;
-		}
-		for (int i = 0; i < 3; i++)// police or dad or mom get on the boat
-		{
-			if (left[i] == 0)// not here, choose next one
-				continue;
-			left[i] = 0;
-			mid[i] = 1;
-			if (true)// at least 2 people get on the boat, otherwise meaningless
-			{
-				cout << i << " go to boat" << endl;
-				for (int j = 0; j < 8; j++)
-				{
-					if (left[i] == 0)// not here, choose next one
-						continue;
-					left[j] = 0;
-					mid[j] = 1;
-					if (allok())
-					{
-						cout << j << " go to boat" << endl;
-						if (j < 3)// j can drive back to left too, try j
-						{
-							right[i] = 1;
-							mid[i] = 0;
-							if (allok())
-							{
-								cout << i << "go to right and " << j << " go to left" << endl;
-								mid[j] = 0;
-								left[j] = 1;
-								solveone();
-								// backtrace
-								mid[j] = 1;
-								left[j] = 0;
-							}
-
-							// backtrace
-							right[i] = 0;
-							mid[i] = 1;
-						}
-						// i < 3, can drive back to left
-						right[j] = 1;
-						mid[j] = 0;
-						if (allok())
-						{
-							cout << j << "go to right and " << i << " go to left" << endl;
-							mid[i] = 0;
-							left[i] = 1;
-							solveone(); // next try
-							// backtrace
-							mid[i] = 1;
-							left[i] = 0;
-						}
-
-						//backtrace
-						right[j] = 0;
-						mid[j] = 1;
-
-					}
-					
-					// backtrace	
-					left[j] = 1;
-					mid[j] = 0;
-					
-				}
-
-			}
-			// backtrace
-			left[i] = 1;
-			mid[i] = 0;
-		}
-	}
+	
 };
 
 
