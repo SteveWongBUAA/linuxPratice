@@ -39,9 +39,17 @@ void p(int* a, int len)
 	printf("\n");
 }
 
+int cmp(const void *a, const void *b)
+{
+	return *(int*)a - *(int*)b;
+}
+
+
+
 int isFlush(int* a, int len)
 {
-	qsort(a, 0, len-1);
+	qsort(a, len, sizeof(int), cmp);
+	p(a, len);
 	int zeros = 0;
 	for (int i = 0; i < len; i++)
 		if (a[i] == 0)
